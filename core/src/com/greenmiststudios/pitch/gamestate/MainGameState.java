@@ -1,12 +1,12 @@
 package com.greenmiststudios.pitch.gamestate;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.Input;
 import com.greenmiststudios.pitch.PitchGame;
 import com.greenmiststudios.pitch.model.entity.Entity;
 import com.greenmiststudios.pitch.interfaces.IRenderable;
 import com.greenmiststudios.pitch.interfaces.IUpdateable;
-import com.greenmiststudios.pitch.model.GameWorld;
+import com.greenmiststudios.pitch.entity.GameWorld;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,6 +61,12 @@ public class MainGameState extends GameState {
     @Override
     public void dispose() {
         super.dispose();
+        for (Entity entity: entities.values()) {
+            entity.dispose();
+        }
+        entities.clear();
+        renderables.clear();
+        updatables.clear();
     }
 
     @Override
@@ -76,6 +82,10 @@ public class MainGameState extends GameState {
     @Override
     public void update(float dt) {
         super.update(dt);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.TAB)) {
+            PitchGame.DEBUG = !PitchGame.DEBUG;
+        }
+
         for (IUpdateable updateable : updatables.values()) {
             updateable.update(dt);
         }

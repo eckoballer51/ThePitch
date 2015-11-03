@@ -7,4 +7,6 @@ import com.badlogic.gdx.math.Vector2;
  */
 public interface IRenderable {
     void render();
+    int getPrimaryOrdering();
+    int getSecondaryOrdering();
 }

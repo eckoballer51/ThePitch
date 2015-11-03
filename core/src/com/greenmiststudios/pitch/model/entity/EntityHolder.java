@@ -1,21 +1,27 @@
 package com.greenmiststudios.pitch.model.entity;
 
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.OrderedMap;
 import com.greenmiststudios.pitch.interfaces.IRenderable;
 import com.greenmiststudios.pitch.interfaces.IUpdateable;
 import com.greenmiststudios.pitch.model.entity.Entity;
+import javafx.collections.transformation.SortedList;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by geoffpowell on 9/22/15.
  */
-public class EntityHolder extends Entity implements IRenderable, IUpdateable {
-    private Map<String, IRenderable> renderables;
-    private Map<String, IUpdateable> updatables;
+public class EntityHolder extends Entity implements  IRenderable, IUpdateable {
+
+    private SortedSet<IRenderable> renderables;
+    private List<IUpdateable> updatables;
     private Map<String, Entity> entities;
-    private ShapeRenderer shapeRenderer;
+    protected ShapeRenderer shapeRenderer;
+    protected SpriteBatch spriteBatch;
+    protected PolygonSpriteBatch polySpriteBatch;
 
     public EntityHolder() {
         setup();
@@ -27,10 +33,12 @@ public class EntityHolder extends Entity implements IRenderable, IUpdateable {
     }
 
     private void setup() {
-        renderables = new HashMap<String, IRenderable>();
-        updatables = new HashMap<String, IUpdateable>();
+        renderables = new TreeSet<IRenderable>(renderableComparator);
+        updatables = new ArrayList<IUpdateable>();
         entities = new HashMap<String, Entity>();
         shapeRenderer = new ShapeRenderer(1000);
+        spriteBatch = new SpriteBatch();
+        polySpriteBatch = new PolygonSpriteBatch();
     }
 
     @Override
@@ -46,26 +54,72 @@ public class EntityHolder extends Entity implements IRenderable, IUpdateable {
         entity.setParent(this);
         if (!entity.wasCreated()) entity.create();
         entities.put(entity.getTag(), entity);
-        if (entity instanceof IRenderable && !renderables.containsKey(entity.getTag())) renderables.put(entity.getTag(), (IRenderable) entity);
-        if (entity instanceof IUpdateable && !updatables.containsKey(entity.getTag())) updatables.put(entity.getTag(), (IUpdateable) entity);
+        if (entity instanceof IRenderable) {
+            renderables.add((IRenderable) entity);
+        }
+        if (entity instanceof IUpdateable) updatables.add((IUpdateable) entity);
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Entity> T findByTag(String tag) {
+        return (T) entities.get(tag);
     }
 
     public ShapeRenderer getShapeRenderer() {
         return shapeRenderer;
     }
 
+    @Override
+    public int getPrimaryOrdering() {
+        return 0;
+    }
+
+    @Override
+    public int getSecondaryOrdering() {
+        return 0;
+    }
+
+    public SpriteBatch getSpriteBatch() {
+        return spriteBatch;
+    }
+
+    public PolygonSpriteBatch getPolySpriteBatch() {
+        return polySpriteBatch;
+    }
+
     public void render() {
-        for (IRenderable renderable : renderables.values()) {
+        for (IRenderable renderable : renderables) {
             renderable.render();
         }
     }
 
     public void update(float dt) {
-        for (IUpdateable updateable : updatables.values()) {
+        for (IUpdateable updateable : updatables) {
             updateable.update(dt);
         }
     }
 
+    @Override
+    public void dispose() {
+        for (Entity entity: entities.values()) {
+            entity.dispose();
+        }
+        entities.clear();
+        renderables.clear();
+        updatables.clear();
+    }
 
+    private final Comparator<IRenderable> renderableComparator = new Comparator<IRenderable>() {
+        @Override
+        public int compare(IRenderable o1, IRenderable o2) {
+            if (o1 == null || o2 == null) return 0;
+
+            if (o1.getPrimaryOrdering() == o2.getPrimaryOrdering()) {
+                return o1.getSecondaryOrdering() - o2.getSecondaryOrdering();
+            } else {
+                return o1.getPrimaryOrdering() - o2.getPrimaryOrdering();
+            }
+        }
+    };
 }

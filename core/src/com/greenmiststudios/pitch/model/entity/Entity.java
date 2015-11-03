@@ -11,6 +11,7 @@ public class Entity {
     private static int count = 0;
     protected EntityHolder parent;
     protected Vector2 location = Vector2.Zero;
+    protected float rotation = 0f; //radians
 
     protected boolean created;
 
@@ -42,5 +43,16 @@ public class Entity {
 
     public EntityHolder getParent() {
         return parent;
+    }
+
+    public Vector2 getLocation() {
+        return location;
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void dispose() {
     }
 }

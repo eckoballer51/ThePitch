@@ -71,8 +71,8 @@ public class GameStateManager extends ApplicationAdapter {
     public void render() {
         super.render();
         if (currentState == null) return;
-        currentState.render();
         if (currentState.needsUpdate) currentState.update(Gdx.graphics.getDeltaTime());
+        currentState.render();
     }
 
     @Override
